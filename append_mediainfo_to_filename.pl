@@ -17,6 +17,7 @@
 #    * TRON - Legacy (2010).mkv -> TRON - Legacy (2010) [1080p 6ch].mkv
 #
 # Limitations:
+#    * Currently runs on Windows only
 #    * Does not recognise when a file already has media information appended
 #    * Does not attempt to synchronise names of subtitle files (*.srt) with those of video files
 #    * Files with multiple audio streams result in unexpected channel counts; for instance, a file with both a
