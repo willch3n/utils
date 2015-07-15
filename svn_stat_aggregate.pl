@@ -109,7 +109,7 @@ foreach $directory (@directories) {
       }
 
       # Perform SVN status on directory, including any arguments
-      my @top_level_status_lines = `svn stat $isolated_path @directory_split`;
+      my @top_level_status_lines = `svn stat --ignore-externals $isolated_path @directory_split`;
 
       # Process files not in any changelists
       foreach $status_line (@top_level_status_lines) {
@@ -133,7 +133,7 @@ foreach $directory (@directories) {
             my $changelist_name = $1;
 
             # Process changelist
-            foreach $changelist_status_line (`svn stat $isolated_path @directory_split --cl $1`) {
+            foreach $changelist_status_line (`svn stat --ignore-externals $isolated_path @directory_split --cl $1`) {
                chomp($changelist_status_line);  # Remove trailing newline character
 
                # Add all files in changelist to hash
