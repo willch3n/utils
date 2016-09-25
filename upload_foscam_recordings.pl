@@ -12,6 +12,7 @@
 #       * ftp_user_name       = my_user_name
 #       * local_source_path   = /home/local_user_name/ftp_dir/FI9821W_00112233AABB/record
 #       * remote_dest_path    = /Media/Surveillance
+#    * Requires that 'lftp' client is available
 #
 # Arguments:
 #    * -c path_to_config_file_rc
