@@ -123,6 +123,10 @@ my $num_unique_days = scalar(keys(%days));
 $today_string       = `date +%Y-%m-%d`; chomp($today_string);
 printf("Found a total of %s recordings made over %s days, excluding today (%s):\n",
        $num_files_found, $num_unique_days, $today_string);
+if ($num_files_found <= 0) {
+   printf("No files to upload; exiting.\n");
+   exit 1;
+}
 
 # Print counts and sizes for each day
 printf("+----------+-------+----------+\n");
