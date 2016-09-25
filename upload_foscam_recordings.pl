@@ -101,21 +101,24 @@ while (defined(my $file = readdir(LOCAL_SOURCE_DIR))) {
 }
 close(LOCAL_SOURCE_DIR);  # Close directory handle
 
-# Build hash of unique days
+# Build hash of unique days, containing count for each day
 my %days;
 my $today_string = `date +%Y%m%d`; chomp($today_string);
 foreach my $file (@files) {
    if ($file =~ /MDalarm_(\d{4})(\d{2})(\d{2}).*\.mkv/) {
       my ($yyyy, $mm, $dd) = ($1, $2, $3);
       my $date_string = $yyyy . $mm . $dd;
-      if ((!exists($days{$date_string})) and ($date_string ne $today_string)) {  # Exclude current day
-         push(@{$days{$date_string}}, 1);
+      if ($date_string ne $today_string) {  # Exclude current day
+         $days{$date_string} += 1;  # Increment count for day
       }
    }
 }
 
-# Print number of files found in local source directory
-my $num_files_found = $#files + 1;  # Count begins at 0  # FIXME: Should not include current day
+# Compute total number of files found in local source directory, excluding those for current day
+my $num_files_found = 0;
+foreach my $day (keys(%days)) {  # For each day
+   $num_files_found += $days{$day};  # Add count for day to total count
+}
 my $num_unique_days = scalar(keys(%days));
 $today_string       = `date +%Y-%m-%d`; chomp($today_string);
 printf("Found a total of %s recordings made over %s days, excluding today (%s):\n",
