@@ -178,3 +178,6 @@ foreach my $day (sort(keys(%days))) {  # Sort alphabetically
 # Close pipe
 close(LFTP_PIPE);
 
+# Exit
+exit 0;
+
