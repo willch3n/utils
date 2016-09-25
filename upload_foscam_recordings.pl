@@ -93,9 +93,9 @@ if (!-d $local_source_path) {  # Local source directory does not exist
 my @files;
 opendir(LOCAL_SOURCE_DIR, $local_source_path) or die ("Error: Read of '$local_source_path' failed: $!!\n");
 while (defined(my $file = readdir(LOCAL_SOURCE_DIR))) {
-   if (($file ne "."                 ) &&  # Exclude listing for current directory
-       ($file ne ".."                ) &&  # Exclude listing for parent directory
-       (-f "$local_source_path/$file")) {  # Is a file, not a directory
+   if (($file ne "."                 ) and  # Exclude listing for current directory
+       ($file ne ".."                ) and  # Exclude listing for parent directory
+       (-f "$local_source_path/$file")) {   # Is a file, not a directory
       push(@files, $file);
    }
 }
@@ -108,7 +108,7 @@ foreach my $file (@files) {
    if ($file =~ /MDalarm_(\d{4})(\d{2})(\d{2}).*\.mkv/) {
       my ($yyyy, $mm, $dd) = ($1, $2, $3);
       my $date_string = $yyyy . $mm . $dd;
-      if ((!exists($days{$date_string})) && ($date_string ne $today_string)) {  # Exclude current day
+      if ((!exists($days{$date_string})) and ($date_string ne $today_string)) {  # Exclude current day
          push(@{$days{$date_string}}, 1);
       }
    }
