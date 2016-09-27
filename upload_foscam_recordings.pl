@@ -17,6 +17,8 @@
 # Arguments:
 #    * -c path_to_config_file_rc
 #      Optional path to configuration file; if not given, looks for '~/.upload_foscam_recordings_rc'
+#    * -d
+#      Dry run; skips all actions that make modifications, such as FTP 'mkdir' and 'mirror' commands
 #
 # Limitations:
 #    * Assumes that recordings are named according to the pattern 'MDalarm_YYYYMMDD_HHMMSS.mkv'
@@ -32,6 +34,7 @@ use IO::Prompter;
 
 # Variables
 my $config_file_path = glob("~/.upload_foscam_recordings_rc");  # Use 'glob' to expand tilde
+my $dry_run = 0;
 my $remote_ftp_hostname;
 my $ftp_user_name;
 my $local_source_path;
@@ -41,10 +44,15 @@ my $remote_dest_path;
 # Parse arguments
 printf("Parsing arguments...\n");
 our $opt_c;
-getopts('c:');
+our $opt_d;
+getopts('c:d');
 if (defined($opt_c)) {  # Path to custom configuration file given
    $config_file_path = $opt_c;
    printf("   * -c: Path to custom configuration file '$config_file_path'\n");
+}
+if (defined($opt_d)) {  # 'Dry run' option specified
+   $dry_run = 1;
+   printf("   * -d: Dry run\n");
 }
 
 # Check existence of configuration file
@@ -170,16 +178,20 @@ foreach my $day (sort(keys(%days))) {  # Sort alphabetically
    print("Executing command: '$mkdir_yyyy_cmd'...\n");
    print("Executing command: '$mkdir_yyyy_mm_cmd'...\n");
    print("Executing command: '$mkdir_yyyy_mm_dd_cmd'...\n");
-   print(LFTP_PIPE "$mkdir_yyyy_cmd\n");
-   print(LFTP_PIPE "$mkdir_yyyy_mm_cmd\n");
-   print(LFTP_PIPE "$mkdir_yyyy_mm_dd_cmd\n");
+   if (!$dry_run) {  # Not dry run
+      print(LFTP_PIPE "$mkdir_yyyy_cmd\n");
+      print(LFTP_PIPE "$mkdir_yyyy_mm_cmd\n");
+      print(LFTP_PIPE "$mkdir_yyyy_mm_dd_cmd\n");
+   }
 
    # Reverse-mirror recordings for day to remote destination directory
    my $wildcard_string = "MDalarm_" . $day . "_*";
    my $full_remote_dest_path = "$remote_dest_path\/$yyyy\/$yyyy-$mm\/$yyyy-$mm-$dd";
    my $mirror_cmd = "mirror -R -i $wildcard_string $local_source_path $full_remote_dest_path";
    print("Executing command: '$mirror_cmd'...\n");
-   print(LFTP_PIPE "$mirror_cmd\n");
+   if (!$dry_run) {  # Not dry run
+      print(LFTP_PIPE "$mirror_cmd\n");
+   }
 }
 
 # Close pipe
