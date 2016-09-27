@@ -38,25 +38,23 @@ my $local_source_path;
 my $remote_dest_path;
 
 
-# Parse arguments and check existence of configuration file
+# Parse arguments
+printf("Parsing arguments...\n");
 our $opt_c;
 getopts('c:');
 if (defined($opt_c)) {  # Path to custom configuration file given
-   $config_file_path = glob("$opt_c");  # Use 'glob' to expand tilde
-   if (!(-f "$config_file_path")) {  # Custom configuration file not found
-      die("Error: Custom configuration file '$config_file_path' not found!\n");
-   }
-   else {  # Custom configuration file found
-      printf("Loading custom configuration file '$config_file_path'...\n");
-   }
+   $config_file_path = $opt_c;
+   printf("   * -c: Path to custom configuration file '$config_file_path'\n");
 }
-else {  # No path to custom configuration file given; use default
-   if (!(-f "$config_file_path")) {  # Default configuration file not found
-      die("Error: Default configuration file '$config_file_path' not found!\n");
-   }
-   else {
-      printf("Loading default configuration file '$config_file_path'...\n");
-   }
+
+# Check existence of configuration file
+my $custom_or_default_str = (defined($opt_c)) ? "Custom" : "Default";
+$config_file_path = glob("$config_file_path");  # Use 'glob' to expand tilde, if any
+if (!(-f "$config_file_path")) {  # Configuration file not found
+   die("Error: $custom_or_default_str configuration file '$config_file_path' not found!\n");
+}
+else {  # Configuration file found
+   printf("Loading %s configuration file '%s'...\n", lc($custom_or_default_str), $config_file_path);
 }
 
 # Read and parse configuration file
