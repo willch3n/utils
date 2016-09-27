@@ -164,14 +164,22 @@ foreach my $day (sort(keys(%days))) {  # Sort alphabetically
       ($yyyy, $mm, $dd) = ($1, $2, $3);
    }
    print("Uploading recordings from $yyyy-$mm-$dd...\n");
-   print(LFTP_PIPE "mkdir $remote_dest_path\/$yyyy\n");
-   print(LFTP_PIPE "mkdir $remote_dest_path\/$yyyy\/$yyyy-$mm\n");
-   print(LFTP_PIPE "mkdir $remote_dest_path\/$yyyy\/$yyyy-$mm\/$yyyy-$mm-$dd\n");
+   my $mkdir_yyyy_cmd       = "mkdir $remote_dest_path\/$yyyy";
+   my $mkdir_yyyy_mm_cmd    = "mkdir $remote_dest_path\/$yyyy\/$yyyy-$mm";
+   my $mkdir_yyyy_mm_dd_cmd = "mkdir $remote_dest_path\/$yyyy\/$yyyy-$mm\/$yyyy-$mm-$dd";
+   print("Executing command: '$mkdir_yyyy_cmd'...\n");
+   print("Executing command: '$mkdir_yyyy_mm_cmd'...\n");
+   print("Executing command: '$mkdir_yyyy_mm_dd_cmd'...\n");
+   print(LFTP_PIPE "$mkdir_yyyy_cmd\n");
+   print(LFTP_PIPE "$mkdir_yyyy_mm_cmd\n");
+   print(LFTP_PIPE "$mkdir_yyyy_mm_dd_cmd\n");
 
    # Reverse-mirror recordings for day to remote destination directory
    my $wildcard_string = "MDalarm_" . $day . "_*";
    my $full_remote_dest_path = "$remote_dest_path\/$yyyy\/$yyyy-$mm\/$yyyy-$mm-$dd";
-   print(LFTP_PIPE "mirror -R -i $wildcard_string $local_source_path $full_remote_dest_path\n");
+   my $mirror_cmd = "mirror -R -i $wildcard_string $local_source_path $full_remote_dest_path";
+   print("Executing command: '$mirror_cmd'...\n");
+   print(LFTP_PIPE "$mirror_cmd\n");
 }
 
 # Close pipe
