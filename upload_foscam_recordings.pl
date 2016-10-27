@@ -161,6 +161,7 @@ print(LFTP_PIPE "set ftp:ssl-allow yes\n");
 print(LFTP_PIPE "set ftp:ssl-force true\n");
 print(LFTP_PIPE "set ftp:ssl-protect-data true\n");
 print(LFTP_PIPE "set ftps:initial-prot \"\"\n");
+print(LFTP_PIPE "set ssl:verify-certificate no\n");
 
 # For each day, reverse-mirror recordings from local source directory to remote destination directory, creating
 # directory structure as we go
