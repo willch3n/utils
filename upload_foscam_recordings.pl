@@ -11,7 +11,7 @@
 #       * remote_ftp_hostname = ftp.my_ftp_host.com
 #       * ftp_user_name       = my_user_name
 #       * local_source_path   = /home/local_user_name/ftp_dir/FI9821W_00112233AABB/record
-#       * remote_dest_path    = /Media/Surveillance
+#       * remote_dest_path    = /Media/Surveillance/Front door
 #    * Requires that 'lftp' client is available
 #
 # Arguments:
@@ -72,8 +72,8 @@ while (<CONFIG>) {
    if ($_ =~ /^[^#].*/) {  # Not a comment
       if    ($_ =~ /remote_ftp_hostname\s+=\s+(\S+)(?:\s?)+#?/) {$remote_ftp_hostname = $1;}
       elsif ($_ =~ /ftp_user_name\s+=\s+(\S+)(?:\s?)+#?/      ) {$ftp_user_name       = $1;}
-      elsif ($_ =~ /local_source_path\s+=\s+(\S+)(?:\s?)+#?/  ) {$local_source_path   = $1;}
-      elsif ($_ =~ /remote_dest_path\s+=\s+(\S+)(?:\s?)+#?/   ) {$remote_dest_path    = $1;}
+      elsif ($_ =~ /local_source_path\s+=\s+(.*)$/            ) {$local_source_path   = $1;}
+      elsif ($_ =~ /remote_dest_path\s+=\s+(.*)$/             ) {$remote_dest_path    = $1;}
    }
 }
 my $missing = 0;
@@ -173,9 +173,9 @@ foreach my $day (sort(keys(%days))) {  # Sort alphabetically
       ($yyyy, $mm, $dd) = ($1, $2, $3);
    }
    print("Uploading recordings from $yyyy-$mm-$dd...\n");
-   my $mkdir_yyyy_cmd       = "mkdir $remote_dest_path\/$yyyy";
-   my $mkdir_yyyy_mm_cmd    = "mkdir $remote_dest_path\/$yyyy\/$yyyy-$mm";
-   my $mkdir_yyyy_mm_dd_cmd = "mkdir $remote_dest_path\/$yyyy\/$yyyy-$mm\/$yyyy-$mm-$dd";
+   my $mkdir_yyyy_cmd       = "mkdir \"$remote_dest_path\/$yyyy\"";
+   my $mkdir_yyyy_mm_cmd    = "mkdir \"$remote_dest_path\/$yyyy\/$yyyy-$mm\"";
+   my $mkdir_yyyy_mm_dd_cmd = "mkdir \"$remote_dest_path\/$yyyy\/$yyyy-$mm\/$yyyy-$mm-$dd\"";
    print("Executing command: '$mkdir_yyyy_cmd'...\n");
    print("Executing command: '$mkdir_yyyy_mm_cmd'...\n");
    print("Executing command: '$mkdir_yyyy_mm_dd_cmd'...\n");
@@ -188,7 +188,7 @@ foreach my $day (sort(keys(%days))) {  # Sort alphabetically
    # Reverse-mirror recordings for day to remote destination directory
    my $wildcard_string = "MDalarm_" . $day . "_*";
    my $full_remote_dest_path = "$remote_dest_path\/$yyyy\/$yyyy-$mm\/$yyyy-$mm-$dd";
-   my $mirror_cmd = "mirror -R -i $wildcard_string $local_source_path $full_remote_dest_path";
+   my $mirror_cmd = "mirror -R -i $wildcard_string \"$local_source_path\" \"$full_remote_dest_path\"";
    print("Executing command: '$mirror_cmd'...\n");
    if (!$dry_run) {  # Not dry run
       print(LFTP_PIPE "$mirror_cmd\n");
