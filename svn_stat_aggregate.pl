@@ -181,6 +181,9 @@ else {  # No changes
    print("\n");
 }
 
+# Print current revision number again, in case 'status' output consumes more than one screen of scrollback
+print(BOLD, BLUE, "$path '$svn_info_directory' is on revision $revision_number", RESET, "\n");
+
 # Print date and time of completion
 if (!$opt_d) {
    $date = `date`; chomp($date);
