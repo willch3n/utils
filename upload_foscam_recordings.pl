@@ -164,7 +164,7 @@ print(LFTP_PIPE "set ftps:initial-prot \"\"\n");
 print(LFTP_PIPE "set ssl:verify-certificate no\n");
 
 # For each day, reverse-mirror recordings from local source directory to remote destination directory, creating
-# directory structure as we go
+# directory structure on the fly
 foreach my $day (sort(keys(%days))) {  # Sort alphabetically
    # Create directory structure for day, without checking whether structure already exists ('lftp' automatically
    # refuses to re-create directories that already exist)
