@@ -188,7 +188,7 @@ foreach my $day (sort(keys(%days))) {  # Sort alphabetically
    # Reverse-mirror recordings for day to remote destination directory
    my $wildcard_string = "MDalarm_" . $day . "_*";
    my $full_remote_dest_path = "$remote_dest_path\/$yyyy\/$yyyy-$mm\/$yyyy-$mm-$dd";
-   my $mirror_cmd = "mirror -R --loop -i $wildcard_string \"$local_source_path\" \"$full_remote_dest_path\"";
+   my $mirror_cmd = "mirror -R -i $wildcard_string \"$local_source_path\" \"$full_remote_dest_path\"";
    print("Executing command: '$mirror_cmd'...\n");
    if (!$dry_run) {  # Not dry run
       print(LFTP_PIPE "$mirror_cmd\n");
