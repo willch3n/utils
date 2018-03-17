@@ -9,7 +9,7 @@
 #      {
 #         "streams": [
 #            {"name": "cam_0_name", "uri": "rtsp://username:password@foo.bar.com:port/"},
-#            {"name": "cam_1_name", "uri": "rtsp://username:password@foo.bar.com:port/"},
+#            {"name": "cam_1_name", "uri": "rtsp://username:password@foo.bar.com:port/"}
 #         ]
 #      }
 #
