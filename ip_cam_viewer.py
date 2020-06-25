@@ -27,6 +27,7 @@
 #    * ./ip_cam_viewer.py --help
 #
 # Limitations:
+#    * Fills available display area without retaining aspect ratios
 #    * Tested on only Raspberry Pi 3 Model B
 ################################################################################
 
