@@ -5,7 +5,8 @@
 #    * Displays a grid of RTSP streams from IP cameras
 #    * Outputs to display attached to HDMI port of Raspberry Pi
 #    * Requires that 'omxplayer' video player is available
-#    * Expects a configuration file in home directory named '.ip_cam_viewer_cfg.json', in the following format:
+#    * Expects a configuration file in home directory named
+#      '.ip_cam_viewer_cfg.json', in the following format:
 #      {
 #         "streams": [
 #            {"name": "cam_0_name", "uri": "rtsp://username:password@foo.bar.com:port/"},
@@ -58,8 +59,16 @@ def main(argv):
    desc_str = "Displays a grid of RTSP streams from IP cameras,"
    desc_str += " outputting to display attached to HDMI port of Raspberry Pi."
    parser = argparse.ArgumentParser(description=desc_str)
-   parser.add_argument("action", choices=["start", "repair", "stop"], help="Action to take")
-   parser.add_argument("--dry", action="store_true", help="Assembles and prints commands without executing them")
+   parser.add_argument(
+      "action",
+      choices=["start", "repair", "stop"],
+      help="Action to take"
+   )
+   parser.add_argument(
+      "--dry",
+      action="store_true",
+      help="Assembles and prints commands without executing them"
+   )
 
    # Print current time
    print(time.strftime("%a %Y-%m-%d %I:%M:%S %p"))
@@ -81,7 +90,7 @@ def main(argv):
    cfg_file_path = os.path.expandvars(cfg_file_path)
    print("Parsing configuration file '{}'...".format(cfg_file_path))
    cfg = json.load(open(cfg_file_path))
-   check_cfg_file(cfg)  # Check that configuration file contained all required information
+   check_cfg_file(cfg)  # Check that file contains all required information
    print("")
 
    # Take requested action
@@ -102,21 +111,25 @@ def check_player_exe():
       print("'{}' executable found.".format(BIN_PATHS["omxplayer"]))
       print("")
    else:
-      msg = "'{}' executable not found.  Verify that device is a".format(BIN_PATHS["omxplayer"])
-      msg += " Raspberry Pi, and that '{}' video player is installed.".format(BIN_PATHS["omxplayer"])
+      msg = "'{}' executable not found.  ".format(BIN_PATHS["omxplayer"])
+      msg += "Verify that device is a Raspberry Pi, and that "
+      msg += "'{}' video player is installed.".format(BIN_PATHS["omxplayer"])
       raise Exception(msg)
 
 # Checks that configuration file contained all required information
 def check_cfg_file(cfg):
    # Streams
    if ("streams" in cfg):
-      if (len(cfg["streams"]) > 0):  # Parsed 'streams[]' list contains at least one item
-         print("Parsed {} streams from configuration file:".format(len(cfg["streams"])))
+      if (len(cfg["streams"]) > 0):  # Parsed list contains at least one item
+         msg = "Parsed {} streams ".format(len(cfg["streams"]))
+         msg += "from configuration file:"
+         print(msg)
          for stream in cfg["streams"]:
             if ("uri" in stream):  # 'uri' element found for stream
                print("   * {}: {}".format(stream["name"], stream["uri"]))
             else:  # No 'uri' element found for stream
-               msg = "No 'uri' element found for stream '{}'".format(stream["name"])
+               msg = "No 'uri' element found for "
+               msg += "stream '{}'".format(stream["name"])
                raise Exception(msg)
       else:  # Parsed 'streams[]' list is empty
          msg = "Configuration file 'streams[]' list is empty."
@@ -132,19 +145,28 @@ def start_streams(cfg, live_run):
    for (idx, stream) in enumerate(cfg["streams"]):
       # If screen session for this index already exists, let it carry on
       if (check_screen_session_exists(idx)):
-         print("Screen session '{}_{}' already exists; skipping.".format(SCR_SESS_PREFIX, idx))
+         msg = "Screen session '{}_{}' ".format(SCR_SESS_PREFIX, idx)
+         msg += "already exists; skipping."
+         print(msg)
          continue
 
       # Otherwise, assemble and execute start command
+      win_pos_str = win_pos(idx % GRID_SZ_X, idx // GRID_SZ_X)  # Position
       start_cmd = "{} {}".format(BIN_PATHS["omxplayer"], PLAYER_OPTS)
-      start_cmd += " --win {}".format(win_pos(idx % GRID_SZ_X, idx // GRID_SZ_X))
+      start_cmd += " --win {}".format(win_pos_str)
       start_cmd += " {}".format(stream["uri"])
-      start_cmd = "{} -dmS {}_{} bash -c '{}'".format(BIN_PATHS["screen"], SCR_SESS_PREFIX, idx, start_cmd)
+      start_cmd = "{} -dmS {}_{} bash -c '{}'".format(
+         BIN_PATHS["screen"],
+         SCR_SESS_PREFIX,
+         idx,
+         start_cmd
+      )
       print(start_cmd)
       if (live_run):
          exit_status = os.system(start_cmd)
          if (exit_status != 0):
-            msg = "Command '{}' failed with error code {}.".format(start_cmd, exit_status)
+            msg = "Command '{}' failed ".format(start_cmd)
+            msg += "with error code {}.".format(exit_status)
             raise Exception(msg)
 
    print("")
@@ -165,16 +187,23 @@ def stop_streams(cfg, live_run):
    for (idx, stream) in enumerate(cfg["streams"]):
       # If session does not exist, do not attempt to stop it
       if (not check_screen_session_exists(idx)):
-         print("Screen session '{}_{}' already stopped; skipping.".format(SCR_SESS_PREFIX, idx))
+         msg = "Screen session '{}_{}' ".format(SCR_SESS_PREFIX, idx)
+         msg += "already stopped; skipping."
+         print(msg)
          continue
 
       # Otherwise, stop it
-      stop_cmd = "{} -S {}_{} -X quit".format(BIN_PATHS["screen"], SCR_SESS_PREFIX, idx)
+      stop_cmd = "{} -S {}_{} -X quit".format(
+         BIN_PATHS["screen"],
+         SCR_SESS_PREFIX,
+         idx
+      )
       print(stop_cmd)
       if (live_run):
          exit_status = os.system(stop_cmd)
          if (exit_status != 0):
-            msg = "Command '{}' failed with error code {}.".format(stop_cmd, exit_status)
+            msg = "Command '{}' failed ".format(stop_cmd)
+            msg += "with error code {}.".format(exit_status)
             raise Exception(msg)
 
    print("")
@@ -187,7 +216,12 @@ def check_screen_session_exists(session_idx):
       raise Exception(msg)
 
    # List active screen sessions and search through it
-   check_cmd = "{} -list | {} '\.{}_{}\s'".format(BIN_PATHS["screen"], BIN_PATHS["grep"], SCR_SESS_PREFIX, session_idx)
+   check_cmd = "{} -list | {} '\.{}_{}\s'".format(
+      BIN_PATHS["screen"],
+      BIN_PATHS["grep"],
+      SCR_SESS_PREFIX,
+      session_idx
+   )
    return (os.system(check_cmd) == 0)
 
 # Given grid coordinates, computes the pixel coordinates of the corresponding
