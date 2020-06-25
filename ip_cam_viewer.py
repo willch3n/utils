@@ -27,8 +27,6 @@
 #    * ./ip_cam_viewer.py --help
 #
 # Limitations:
-#    * Hard-coded to display a 2x2 grid
-#    * Hard-coded to assume a display resolution of 1920x1080
 #    * Tested on only Raspberry Pi 3 Model B
 ################################################################################
 
@@ -48,10 +46,10 @@ bin_paths = {"screen"   : "/usr/bin/screen",
 cfg_file_path = "~/.ip_cam_viewer_cfg.json"
 player_opts = "--avdict rtsp_transport:tcp --live -n -1"
 scr_sess_prefix = "ip_cam"
-win_pos = ["0,0,960,540",        # Top left
-           "960,0,1920,540",     # Top right
-           "0,540,960,1080",     # Bottom left
-           "960,540,1920,1080"]  # Bottom right
+disp_res_x = 1920
+disp_res_y = 1080
+grid_sz_x = 2
+grid_sz_y = 2
 
 # Main function
 def main(argv):
@@ -139,7 +137,7 @@ def start_streams(cfg, live_run):
 
       # Otherwise, assemble and execute start command
       start_cmd = "{} {}".format(bin_paths["omxplayer"], player_opts)
-      start_cmd += " --win {}".format(win_pos[idx])
+      start_cmd += " --win {}".format(win_pos(idx % grid_sz_x, idx // grid_sz_x))
       start_cmd += " {}".format(stream["uri"])
       start_cmd = "{} -dmS {}_{} bash -c '{}'".format(bin_paths["screen"], scr_sess_prefix, idx, start_cmd)
       print(start_cmd)
@@ -191,6 +189,29 @@ def check_screen_session_exists(session_idx):
    # List active screen sessions and search through it
    check_cmd = "{} -list | {} '\.{}_{}\s'".format(bin_paths["screen"], bin_paths["grep"], scr_sess_prefix, session_idx)
    return (os.system(check_cmd) == 0)
+
+# Given grid coordinates, computes the pixel coordinates of the corresponding
+# bounding box, in a string to be provided to 'omxplayer' via its '--win'
+# option
+def win_pos(x, y):
+   # Compute X and Y sizes of each stream
+   x_sz = int(disp_res_x / grid_sz_x)
+   y_sz = int(disp_res_y / grid_sz_y)
+
+   # Compute pixel coordinates of top-left and bottom-right corners of bounding
+   # box
+   top_left_x = x * x_sz
+   top_left_y = y * y_sz
+   bot_right_x = top_left_x + x_sz
+   bot_right_y = top_left_y + y_sz
+
+   # Construct string
+   return "{},{},{},{}".format(
+      top_left_x,
+      top_left_y,
+      bot_right_x,
+      bot_right_y
+   )
 
 # Execute 'main()' function
 if (__name__ == "__main__"):
