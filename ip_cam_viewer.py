@@ -50,7 +50,7 @@ PLAYER_OPTS = "--avdict rtsp_transport:tcp --live -n -1"
 SCR_SESS_PREFIX = "ip_cam"
 DISP_RES_X = 1920
 DISP_RES_Y = 1080
-GRID_SZ_X = 2
+GRID_SZ_X = 3
 GRID_SZ_Y = 2
 
 # Main function
