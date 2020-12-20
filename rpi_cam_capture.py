@@ -23,6 +23,7 @@ from picamera import PiCamera
 # Constants
 RES_X = 2592  # Maximum
 RES_Y = 1944  # Maximum
+ROTATION = 180  # Camera is inverted
 FRAMERATE = 15
 SLEEP_DURATION_SEC = 5  # Allow time for brightness adaptation
 
@@ -52,8 +53,10 @@ def capture(pi_camera):
 
     # Configuration
     print("Resolution: {} x {}".format(RES_X, RES_Y))
+    print("Rotation: {}".format(ROTATION))
     print("Frame rate: {}".format(FRAMERATE))
     pi_camera.resolution = (RES_X, RES_Y)
+    pi_camera.rotation = ROTATION
     pi_camera.framerate = FRAMERATE
 
     # Capture
