@@ -92,7 +92,7 @@ def check_cfg_file(cfg):
 
 # Formats file names and prints results
 def fmt_print_file_names(file_names):
-    re_file_name = re.compile(r'^(\d{4}-\d{2}-\d{2})_(\d{2})(\d{2})_c(\d{2})\.jpg$')
+    re_file_name = re.compile(r'^(\d{4}-\d{2}-\d{2})_(\d{2})(\d{2})\.jpg$')
 
     num_printed = 0
     for file_name in file_names:
@@ -101,11 +101,9 @@ def fmt_print_file_names(file_names):
             m_date = m.group(1)
             m_hour = m.group(2)
             m_minute = m.group(3)
-            m_contrast = m.group(4)
 
-            if (m_contrast == "00"):  # Ignore duplicates
-                print("{} {}:{}".format(m_date, m_hour, m_minute))
-                num_printed += 1
+            print("{} {}:{}".format(m_date, m_hour, m_minute))
+            num_printed += 1
 
     return num_printed
 
