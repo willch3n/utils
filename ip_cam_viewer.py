@@ -52,6 +52,7 @@ DISP_RES_X = 1920
 DISP_RES_Y = 1080
 GRID_SZ_X = 3
 GRID_SZ_Y = 2
+FPS = 5
 
 # Main function
 def main(argv):
@@ -154,6 +155,7 @@ def start_streams(cfg, live_run):
         win_pos_str = win_pos(idx % GRID_SZ_X, idx // GRID_SZ_X)  # Position
         start_cmd = "{} {}".format(BIN_PATHS["omxplayer"], PLAYER_OPTS)
         start_cmd += " --win {}".format(win_pos_str)
+        start_cmd += " --fps {}".format(FPS)
         start_cmd += " {}".format(stream["uri"])
         start_cmd = "{} -dmS {}_{} bash -c '{}'".format(
             BIN_PATHS["screen"],
