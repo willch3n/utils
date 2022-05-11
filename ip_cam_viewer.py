@@ -10,9 +10,11 @@
 #      {
 #         "streams": [
 #            {"name": "cam_0_name", "uri": "rtsp://username:password@foo.bar.com:port/"},
-#            {"name": "cam_1_name", "uri": "rtsp://username:password@foo.bar.com:port/"}
+#            {"name": "cam_1_name", "uri": "rtsp://username:password@foo.bar.com:port/", "transport": "udp"}
 #         ]
 #      }
+#    * Transport protocol may be optionally specified per stream; if not
+#      specified, defaults to TCP
 #
 # Arguments:
 #    * action (required)
@@ -46,7 +48,7 @@ BIN_PATHS = {"screen"   : "/usr/bin/screen",
              "grep"     : "/bin/grep",
              "omxplayer": "/usr/bin/omxplayer"}
 CFG_FILE_PATH = "~/.ip_cam_viewer_cfg.json"
-PLAYER_OPTS = "--avdict rtsp_transport:tcp --live -n -1"
+DEFAULT_TRANSPORT_PROTO = "tcp"
 SCR_SESS_PREFIX = "ip_cam"
 DISP_RES_X = 1920
 DISP_RES_Y = 1080
@@ -89,7 +91,7 @@ def main(argv):
     cfg_file_path = os.path.expandvars(cfg_file_path)
     print("Parsing configuration file '{}'...".format(cfg_file_path))
     cfg = json.load(open(cfg_file_path))
-    check_cfg_file(cfg)  # Check that file contains all required information
+    check_cfg_file(cfg)  # Check for completeness and validity of file
     print("")
 
     # Take requested action
@@ -115,7 +117,7 @@ def check_player_exe():
         msg += "'{}' video player is installed.".format(BIN_PATHS["omxplayer"])
         raise Exception(msg)
 
-# Checks that configuration file contained all required information
+# Checks for completeness and validity of configuration file
 def check_cfg_file(cfg):
     # Streams
     if ("streams" in cfg):
@@ -125,7 +127,21 @@ def check_cfg_file(cfg):
             print(msg)
             for stream in cfg["streams"]:
                 if ("uri" in stream):  # 'uri' element found for stream
-                    print("   * {}: {}".format(stream["name"], stream["uri"]))
+                    msg = "   * {}: {}".format(stream["name"], stream["uri"])
+
+                    # Validate transport protocol, if specified
+                    if "transport" in stream:  # Key-value pair specified
+                        transport_proto = stream["transport"]
+                        if transport_proto in ["tcp", "udp"]:  # Valid protocol
+                            msg += " ({})".format(transport_proto.upper())
+                        else:  # Invalid transport protocol specification
+                            msg = "Invalid transport protocol "
+                            msg += "'{}' specified ".format(transport_proto)
+                            msg += "for stream '{}'; ".format(stream["name"])
+                            msg += "valid values are 'tcp' and 'udp'."
+                            raise Exception(msg)
+
+                    print(msg)
                 else:  # No 'uri' element found for stream
                     msg = "No 'uri' element found for "
                     msg += "stream '{}'".format(stream["name"])
@@ -162,6 +178,12 @@ def start_streams(cfg, live_run):
             print(msg)
             continue
 
+        # Select transport protocol
+        if "transport" in stream:  # Key-value pair specified
+            transport_proto = stream["transport"]
+        else:  # Key-value pair not specified
+            transport_proto = DEFAULT_TRANSPORT_PROTO
+
         # Otherwise, assemble and execute start command
         win_pos_str = win_pos(
             grid_sz_x,  # Width of grid
@@ -169,7 +191,10 @@ def start_streams(cfg, live_run):
             idx % grid_sz_x,  # X coordinate of current stream
             idx // grid_sz_x,  # Y coordinate of current stream
         )
-        start_cmd = "{} {}".format(BIN_PATHS["omxplayer"], PLAYER_OPTS)
+        start_cmd = "{} ".format(BIN_PATHS["omxplayer"])
+        start_cmd += " --avdict rtsp_transport:{}".format(transport_proto)
+        start_cmd += " --live "
+        start_cmd += " -n -1"  # No audio
         start_cmd += " --win {}".format(win_pos_str)
         start_cmd += " --fps {}".format(FPS)
         start_cmd += " {}".format(stream["uri"])
