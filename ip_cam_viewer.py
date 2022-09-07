@@ -49,7 +49,7 @@ BIN_PATHS = {"screen"   : "/usr/bin/screen",
              "omxplayer": "/usr/bin/omxplayer"}
 CFG_FILE_PATH = "~/.ip_cam_viewer_cfg.json"
 DEFAULT_TRANSPORT_PROTO = "tcp"
-SCR_SESS_PREFIX = "ip_cam"
+SCR_SESS_PREFIX = "cam"
 DISP_RES_X = 1920
 DISP_RES_Y = 1080
 FPS = 5
@@ -173,7 +173,7 @@ def start_streams(cfg, live_run):
     for (idx, stream) in enumerate(cfg["streams"]):
         # If screen session for this index already exists, let it carry on
         if (check_screen_session_exists(idx)):
-            msg = "Screen session '{}_{}' ".format(SCR_SESS_PREFIX, idx)
+            msg = "Screen session '{}{}' ".format(SCR_SESS_PREFIX, idx)
             msg += "already exists; skipping."
             print(msg)
             continue
@@ -198,7 +198,7 @@ def start_streams(cfg, live_run):
         start_cmd += " --win {}".format(win_pos_str)
         start_cmd += " --fps {}".format(FPS)
         start_cmd += " {}".format(stream["uri"])
-        start_cmd = "{} -dmS {}_{} bash -c '{}'".format(
+        start_cmd = "{} -dmS {}{} bash -c '{}'".format(
             BIN_PATHS["screen"],
             SCR_SESS_PREFIX,
             idx,
@@ -230,13 +230,13 @@ def stop_streams(cfg, live_run):
     for (idx, stream) in enumerate(cfg["streams"]):
         # If session does not exist, do not attempt to stop it
         if (not check_screen_session_exists(idx)):
-            msg = "Screen session '{}_{}' ".format(SCR_SESS_PREFIX, idx)
+            msg = "Screen session '{}{}' ".format(SCR_SESS_PREFIX, idx)
             msg += "already stopped; skipping."
             print(msg)
             continue
 
         # Otherwise, stop it
-        stop_cmd = "{} -S {}_{} -X quit".format(
+        stop_cmd = "{} -S {}{} -X quit".format(
             BIN_PATHS["screen"],
             SCR_SESS_PREFIX,
             idx
@@ -259,7 +259,7 @@ def check_screen_session_exists(session_idx):
         raise Exception(msg)
 
     # List active screen sessions and search through it
-    check_cmd = "{} -list | {} '\.{}_{}\s'".format(
+    check_cmd = "{} -list | {} '\.{}{}\s'".format(
         BIN_PATHS["screen"],
         BIN_PATHS["grep"],
         SCR_SESS_PREFIX,
