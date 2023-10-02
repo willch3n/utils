@@ -18,7 +18,9 @@
 #
 # Arguments:
 #    * action (required)
-#      Action to take; valid values are 'start', 'repair', and 'stop'
+#       * start:   Starts streams, skipping any that are already running
+#       * restart: Stops all streams, and then starts them anew
+#       * stop:    Stops all streams
 #    * --dry (optional)
 #      Dry run; assembles and prints commands without executing them
 #    * --help (optional)
@@ -62,7 +64,7 @@ def main(argv):
     parser = argparse.ArgumentParser(description=desc_str)
     parser.add_argument(
         "action",
-        choices=["start", "repair", "stop"],
+        choices=["start", "restart", "stop"],
         help="Action to take"
     )
     parser.add_argument(
@@ -83,7 +85,7 @@ def main(argv):
     print("")
 
     # Check that 'omxplayer' video player is available
-    if (args.action in ["start", "repair"]):
+    if (args.action in ["start", "restart"]):
         check_player_exe()
 
     # Parse configuration file
@@ -95,9 +97,9 @@ def main(argv):
     print("")
 
     # Take requested action
-    if   (args.action == "start"):  start_streams(cfg, not args.dry)
-    elif (args.action == "repair"): repair_streams(cfg, not args.dry)
-    elif (args.action == "stop"):   stop_streams(cfg, not args.dry)
+    if   (args.action == "start"):   start_streams(cfg, not args.dry)
+    elif (args.action == "restart"): restart_streams(cfg, not args.dry)
+    elif (args.action == "stop"):    stop_streams(cfg, not args.dry)
 
     # Exit
     print("Done.")
@@ -214,9 +216,9 @@ def start_streams(cfg, live_run):
 
     print("")
 
-# Repairs streams by stopping them all, and then starting them anew
-def repair_streams(cfg, live_run):
-    print("Repairing streams...")
+# Stops all streams, and then starts them anew
+def restart_streams(cfg, live_run):
+    print("Restarting streams...")
     print("")
 
     stop_streams(cfg, live_run)
