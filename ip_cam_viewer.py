@@ -177,12 +177,13 @@ def start_streams(cfg, live_run):
             transport_proto = DEFAULT_TRANSPORT_PROTO
 
         # Otherwise, assemble and execute start command
-        win_pos_str = win_pos(
+        bounding_box_coords = win_pos(
             grid_sz_x,  # Width of grid
             grid_sz_y,  # Height of grid
             idx % grid_sz_x,  # X coordinate of current stream
             idx // grid_sz_x,  # Y coordinate of current stream
         )
+        win_pos_str = ",".join(str(c) for c in bounding_box_coords)
         start_cmd = "{} ".format(BIN_PATHS["omxplayer"])
         start_cmd += " --avdict rtsp_transport:{}".format(transport_proto)
         start_cmd += " --live "
@@ -276,8 +277,7 @@ def calc_grid_dims(cfg):
     return (grid_sz_x, grid_sz_y)
 
 # Given grid dimensions and coordinates, computes the pixel coordinates of the
-# corresponding bounding box, in a string to be provided to 'omxplayer' via its
-# '--win' option
+# corresponding bounding box and returns them in a 4-element list
 def win_pos(grid_sz_x, grid_sz_y, x, y):
     # Compute X and Y sizes of each stream
     x_sz = int(DISP_RES_X / grid_sz_x)
@@ -290,13 +290,11 @@ def win_pos(grid_sz_x, grid_sz_y, x, y):
     bot_right_x = top_left_x + x_sz
     bot_right_y = top_left_y + y_sz
 
-    # Construct string
-    return "{},{},{},{}".format(
-       top_left_x,
-       top_left_y,
-       bot_right_x,
-       bot_right_y
-    )
+    # Construct and return list containing bounding box coordinates
+    return [
+        top_left_x,  top_left_y,
+        bot_right_x, bot_right_y,
+    ]
 
 # Execute 'main()' function
 if (__name__ == "__main__"):
