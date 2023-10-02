@@ -184,9 +184,9 @@ def start_streams(cfg, live_run):
             idx // grid_sz_x,  # Y coordinate of current stream
         )
         win_pos_str = ",".join(str(c) for c in bounding_box_coords)
-        start_cmd = "{} ".format(BIN_PATHS["omxplayer"])
+        start_cmd = "{}".format(BIN_PATHS["omxplayer"])
         start_cmd += " --avdict rtsp_transport:{}".format(transport_proto)
-        start_cmd += " --live "
+        start_cmd += " --live"
         start_cmd += " -n -1"  # No audio
         start_cmd += " --win {}".format(win_pos_str)
         start_cmd += " --fps {}".format(FPS)
