@@ -86,7 +86,7 @@ def main(argv):
 
     # Check that 'omxplayer' video player is available
     if (args.action in ["start", "restart"]):
-        check_player_exe()
+        check_exe(BIN_PATHS["omxplayer"])
 
     # Parse configuration file
     cfg_file_path = os.path.expanduser(CFG_FILE_PATH)
@@ -106,17 +106,17 @@ def main(argv):
     print("")
     sys.exit(0)  # Success
 
-# Checks that 'omxplayer' video player is available
-def check_player_exe():
-    print("Checking that 'omxplayer' video player is available...")
+# Checks that a given executable is available
+def check_exe(exe_path):
+    print("Checking that '{}' executable is available...".format(exe_path))
 
-    if (shutil.which(BIN_PATHS["omxplayer"], mode=os.X_OK)):
-        print("'{}' executable found.".format(BIN_PATHS["omxplayer"]))
+    if (shutil.which(exe_path, mode=os.X_OK)):
+        print("'{}' executable found.".format(exe_path))
         print("")
     else:
-        msg = "'{}' executable not found.  ".format(BIN_PATHS["omxplayer"])
+        msg = "'{}' executable not found.  ".format(exe_path)
         msg += "Verify that device is a Raspberry Pi, and that "
-        msg += "'{}' video player is installed.".format(BIN_PATHS["omxplayer"])
+        msg += "'{}' is installed.".format(exe_path)
         raise Exception(msg)
 
 # Checks for completeness and validity of configuration file
