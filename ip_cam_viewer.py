@@ -157,18 +157,8 @@ def check_cfg_file(cfg):
 
 # Starts streams, skipping any that are already running
 def start_streams(cfg, live_run):
-    # Set dimensions of grid according to number of streams to be displayed
-    if (len(cfg["streams"]) == 1):  # Single stream
-        (grid_sz_x, grid_sz_y) = (1, 1)
-    elif (len(cfg["streams"]) in range(2, 5)):  # 2, 3, or 4 streams
-        (grid_sz_x, grid_sz_y) = (2, 2)
-    elif (len(cfg["streams"]) in range(5, 7)):  # 5 or 6 streams
-        (grid_sz_x, grid_sz_y) = (3, 2)
-    else:  # Unsupported number of streams
-        msg = "Maximum number of streams supported is 6, but "
-        msg += "{} streams specified.".format(len(cfg["streams"]))
-        raise Exception(msg)
-    print("Grid dimensions: {} x {}".format(grid_sz_x, grid_sz_y))
+    # Compute dimensions of grid according to number of streams to be displayed
+    (grid_sz_x, grid_sz_y) = calc_grid_dims(cfg)
 
     # Start streams
     print("Starting streams...")
@@ -268,6 +258,22 @@ def check_screen_session_exists(session_idx):
         session_idx
     )
     return (os.system(check_cmd) == 0)
+
+# Computes dimensions of grid according to number of streams to be displayed
+def calc_grid_dims(cfg):
+    if (len(cfg["streams"]) == 1):  # Single stream
+        (grid_sz_x, grid_sz_y) = (1, 1)
+    elif (len(cfg["streams"]) in range(2, 5)):  # 2, 3, or 4 streams
+        (grid_sz_x, grid_sz_y) = (2, 2)
+    elif (len(cfg["streams"]) in range(5, 7)):  # 5 or 6 streams
+        (grid_sz_x, grid_sz_y) = (3, 2)
+    else:  # Unsupported number of streams
+        msg = "Maximum number of streams supported is 6, but "
+        msg += "{} streams specified.".format(len(cfg["streams"]))
+        raise Exception(msg)
+    print("Grid dimensions: {} x {}".format(grid_sz_x, grid_sz_y))
+
+    return (grid_sz_x, grid_sz_y)
 
 # Given grid dimensions and coordinates, computes the pixel coordinates of the
 # corresponding bounding box, in a string to be provided to 'omxplayer' via its
