@@ -4,7 +4,9 @@
 # Description:
 #    * Displays a grid of RTSP streams from IP cameras
 #    * Outputs to display attached to HDMI port of Raspberry Pi
-#    * Requires that 'omxplayer' video player is available
+#    * Requires that following executables are available:
+#       * omxplayer: Raspberry Pi GPU-accelerated video player
+#       * vcgencmd:  Raspberry Pi VideoCore GPU query utility
 #    * Expects a configuration file in home directory named
 #      '.ip_cam_viewer_cfg.json', in the following format:
 #      {
@@ -19,6 +21,7 @@
 # Arguments:
 #    * action (required)
 #       * start:   Starts streams, skipping any that are already running
+#       * repair:  Restarts any stream with no corresponding DispmanX layer
 #       * restart: Stops all streams, and then starts them anew
 #       * stop:    Stops all streams
 #    * --dry (optional)
@@ -41,14 +44,17 @@
 import argparse
 import json
 import os
+import re
 import shutil
+import subprocess
 import sys
 import time
 
 # Constants
 BIN_PATHS = {"screen"   : "/usr/bin/screen",
              "grep"     : "/bin/grep",
-             "omxplayer": "/usr/bin/omxplayer"}
+             "omxplayer": "/usr/bin/omxplayer",
+             "vcgencmd" : "/usr/bin/vcgencmd"}
 CFG_FILE_PATH = "~/.ip_cam_viewer_cfg.json"
 DEFAULT_TRANSPORT_PROTO = "tcp"
 SCR_SESS_PREFIX = "cam"
@@ -64,7 +70,7 @@ def main(argv):
     parser = argparse.ArgumentParser(description=desc_str)
     parser.add_argument(
         "action",
-        choices=["start", "restart", "stop"],
+        choices=["start", "repair", "restart", "stop"],
         help="Action to take"
     )
     parser.add_argument(
@@ -84,9 +90,11 @@ def main(argv):
         print("   * {}: {}".format(arg, val))
     print("")
 
-    # Check that 'omxplayer' video player is available
-    if (args.action in ["start", "restart"]):
+    # Check that required executables are available
+    if (args.action in ["start", "repair", "restart"]):
         check_exe(BIN_PATHS["omxplayer"])
+    if (args.action == "repair"):
+        check_exe(BIN_PATHS["vcgencmd"])
 
     # Parse configuration file
     cfg_file_path = os.path.expanduser(CFG_FILE_PATH)
@@ -98,6 +106,7 @@ def main(argv):
 
     # Take requested action
     if   (args.action == "start"):   start_streams(cfg, not args.dry)
+    elif (args.action == "repair"):  repair_streams(cfg, not args.dry)
     elif (args.action == "restart"): restart_streams(cfg, not args.dry)
     elif (args.action == "stop"):    stop_streams(cfg, not args.dry)
 
@@ -204,6 +213,64 @@ def start_streams(cfg, live_run):
                 msg = "Command '{}' failed ".format(start_cmd)
                 msg += "with error code {}.".format(exit_status)
                 raise Exception(msg)
+
+    print("")
+
+# Terminates and then restarts any stream with no corresponding DispmanX layer
+def repair_streams(cfg, live_run):
+    dispmanx_coords = []
+
+    # Query VideoCore GPU utility to obtain pixel coordinates of top-left
+    # corner of each active DispmanX layer
+    vcgencmd_proc = subprocess.run(
+        [BIN_PATHS["vcgencmd"], "dispmanx_list"],
+        capture_output=True,
+        text=True,
+    )
+    for line in vcgencmd_proc.stdout.splitlines():
+        if re.search(r"format:UNKNOWN", line):
+            continue  # Ignore unknown layer
+        m = re.search(r"display:\d+ format:\S+ .*dst:(\d+,\d+),\d+,\d+ ", line)
+        if m:  # Matched line for a valid and active layer
+            dispmanx_coords.append(m.group(1))  # Record coordinates of corner
+
+    # Compute dimensions of grid according to number of streams to be displayed
+    (grid_sz_x, grid_sz_y) = calc_grid_dims(cfg)
+
+    # Repair streams
+    print("Repairing streams...")
+    missing_stream_cnt = 0
+    for (idx, _) in enumerate(cfg["streams"]):
+        # Construct string containing expected pixel coordinates of top-left
+        # corner of stream
+        bounding_box_coords = win_pos(
+            grid_sz_x,  # Width of grid
+            grid_sz_y,  # Height of grid
+            idx % grid_sz_x,  # X coordinate of current stream
+            idx // grid_sz_x,  # Y coordinate of current stream
+        )
+        win_pos_str = ",".join(str(c) for c in bounding_box_coords[0:2])
+
+        # If no active DispmanX layer with matching coordinates, stop
+        # corresponding screen session, if any
+        if (win_pos_str not in dispmanx_coords):
+            missing_stream_cnt += 1
+            stop_cmd = "{} -S {}{} -X quit".format(
+                BIN_PATHS["screen"],
+                SCR_SESS_PREFIX,
+                idx,
+            )
+            print(stop_cmd)
+            if (live_run):
+                os.system(stop_cmd)
+    print("")
+
+    # Restart missing streams, if any
+    if (missing_stream_cnt > 0):  # At least one stream to restart
+        start_streams(cfg, live_run)
+        print("Repaired {} stream(s).".format(missing_stream_cnt))
+    else:  # No missing streams
+        print("All streams intact; no action required.")
 
     print("")
 
