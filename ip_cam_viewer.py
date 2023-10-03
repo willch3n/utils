@@ -38,12 +38,12 @@
 
 
 # Modules
-import sys
-import os
-import time
-import shutil
 import argparse
 import json
+import os
+import shutil
+import sys
+import time
 
 # Constants
 BIN_PATHS = {"screen"   : "/usr/bin/screen",

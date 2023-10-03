@@ -27,12 +27,12 @@
 
 
 # Modules
-import sys
-import os
-import time
 import argparse
 import json
+import os
 import re
+import sys
+import time
 
 # Constants
 CFG_FILE_PATH = "~/.solar_snapshot_name_parse_cfg.json"

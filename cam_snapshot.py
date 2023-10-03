@@ -23,11 +23,11 @@
 
 
 # Modules
-import sys
-import os
-import time
-import shutil
 import argparse
+import os
+import shutil
+import sys
+import time
 
 # Constants
 BIN_PATHS = {"mplayer": "/usr/bin/mplayer"}
