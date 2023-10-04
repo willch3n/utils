@@ -5,6 +5,7 @@
 #    * Displays a grid of RTSP streams from IP cameras
 #    * Outputs to display attached to HDMI port of Raspberry Pi
 #    * Requires that following executables are available:
+#       * tvservice: Raspberry Pi HDMI display utility
 #       * omxplayer: Raspberry Pi GPU-accelerated video player
 #       * vcgencmd:  Raspberry Pi VideoCore GPU query utility
 #    * Expects a configuration file in home directory named
@@ -53,13 +54,12 @@ import time
 # Constants
 BIN_PATHS = {"screen"   : "/usr/bin/screen",
              "grep"     : "/bin/grep",
+             "tvservice": "/usr/bin/tvservice",
              "omxplayer": "/usr/bin/omxplayer",
              "vcgencmd" : "/usr/bin/vcgencmd"}
 CFG_FILE_PATH = "~/.ip_cam_viewer_cfg.json"
 DEFAULT_TRANSPORT_PROTO = "tcp"
 SCR_SESS_PREFIX = "cam"
-DISP_RES_X = 1920
-DISP_RES_Y = 1080
 FPS = 5
 
 # Main function
@@ -92,6 +92,7 @@ def main(argv):
 
     # Check that required executables are available
     if (args.action in ["start", "repair", "restart"]):
+        check_exe(BIN_PATHS["tvservice"])
         check_exe(BIN_PATHS["omxplayer"])
     if (args.action == "repair"):
         check_exe(BIN_PATHS["vcgencmd"])
@@ -346,9 +347,27 @@ def calc_grid_dims(cfg):
 # Given grid dimensions and coordinates, computes the pixel coordinates of the
 # corresponding bounding box and returns them in a 4-element list
 def win_pos(grid_sz_x, grid_sz_y, x, y):
+    # Query HDMI display utility to obtain resolution of current display
+    disp_res_x = None
+    disp_res_y = None
+    tvservice_proc = subprocess.run(
+        [BIN_PATHS["tvservice"], "--status"],
+        capture_output=True,
+        text=True,
+    )
+    for line in tvservice_proc.stdout.splitlines():
+        m = re.search(r"^state .*, (\d+)x(\d+) @ \d+\.\d+Hz, ", line)
+        if m:  # Matched line containing current mode, resolution, frequency
+            disp_res_x = int(m.group(1))
+            disp_res_y = int(m.group(2))
+    if (not disp_res_x) or (not disp_res_y):
+        msg = "Failed to query 'tvservice' HDMI display utility to obtain "
+        msg += "resolution of current display"
+        raise Exception(msg)
+
     # Compute X and Y sizes of each stream
-    x_sz = int(DISP_RES_X / grid_sz_x)
-    y_sz = int(DISP_RES_Y / grid_sz_y)
+    x_sz = int(disp_res_x / grid_sz_x)
+    y_sz = int(disp_res_y / grid_sz_y)
 
     # Compute pixel coordinates of top-left and bottom-right corners of
     # bounding box
